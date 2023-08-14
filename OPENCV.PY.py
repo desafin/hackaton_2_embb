@@ -18,7 +18,7 @@ transform = transforms.Compose([
 ort_session = onnxruntime.InferenceSession('model_ft.onnx')
 
 # 클래스 이름 목록
-class_names = ['Elmuco_Tab', 'Gelusam_Tab', 'Lopmin_Cap', 'Tylenol_Powder_160mg']
+class_names = ['lopmin', 'nephin', 'penzar_er']
 
 # 웹캠에서 실시간 영상 캡처 및 분류
 cap = cv2.VideoCapture(0)  # 웹캠 캡처 객체 생성
@@ -28,8 +28,6 @@ while True:
         break
 
     # 프레임 전처리
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
 
     image = Image.fromarray(frame)
     input_tensor = transform(image)
