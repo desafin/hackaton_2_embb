@@ -3,6 +3,75 @@ import torchvision.transforms as transforms
 import onnxruntime
 import cv2
 from PIL import Image
+from flask import Flask, render_template, Response
+import threading
+from queue import Queue
+
+
+import time
+
+
+
+
+# 큐 생성
+frame_queue = Queue()
+
+
+
+# 스레드 종료를 위한 플래그
+thread_exit_flag = False
+
+app = Flask(__name__)
+
+def generate_frames():
+    while True:
+        # 큐에서 프레임 가져오기
+        frame = frame_queue.get()
+
+        # 프레임을 바이트 스트림으로 인코딩하여 전송
+        _, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/events')
+def events():
+    def generate():
+        while True:
+            readytosend=send_text
+            sse_message= f"data: {readytosend}\n\n"
+            yield sse_message
+            time.sleep(1)
+
+    return Response(generate(), content_type='text/event-stream')
+
+
+def start_stream():
+    app.run(debug=False)
+
+server_thread = threading.Thread(target=start_stream)
+
+
+server_thread.start()
+
+def start_stream():
+    app.run(debug=False)
+
 
 # 이미지 전처리를 위한 변환 정의
 transform = transforms.Compose([
@@ -82,7 +151,7 @@ while True:
     count = 0
     for idx, contour in enumerate(contours):
         contour_area = cv2.contourArea(contour)
-        if 0 < contour_area < 1000000:
+        if 1000 < contour_area < 10000:
             x, y, w, h = cv2.boundingRect(contour)
             cv2.rectangle(contour_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             roi = frame[y:y + h, x:x + w]
@@ -91,6 +160,8 @@ while True:
             # 바운딩 박스 근처에 인덱스 번호 출력
             cv2.putText(contour_frame, str(count), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             count=count+1
+
+
 
     count = 0
     text_y_val = 25
@@ -122,18 +193,20 @@ while True:
         cv2.putText(contour_frame, text, (0, text_y_val), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         text_y_val = text_y_val + 25
 
+
         # 클래스 결과 배열에 추가
         detected_classes.append(predicted_class)
 
 
         cv2.imshow("contour_frame",contour_frame)
 
+
         # 가장 높은 확률의 클래스를 출력
         print(str(count) + " 번째 약")
         count = count + 1
         print(f'Predicted class: {predicted_class} ({max_prob:.4f})')
 
-    print(detected_classes)
+    frame_queue.put(contour_frame)
 
     # detected_classes 배열 전체 검사 반복문
     lopminCount=0
@@ -158,15 +231,24 @@ while True:
 
     if lopminCount>1:
         print("로프민 중복이 있습니다 확인해주세요")
+        send_text ="로프민 중복이 있습니다 확인해주세요 성분:로페라미드 염산염 급성설사에 효과가있습니다"
+
+
     elif nephinCount>1:
         print("네프신 중복이 있습니다 확인해주세요")
+        send_text = "네프신 중복이 있습니다 확인해주세요 성분:생약성분  방광염 요도염등에 효과가있습니다"
+
     elif penzar_erCount>1:
-        print("펜잘 중복이 있습니다 확인해주세요")
+        print("펜잘 중복이 있습니다 확인해주세요 성분:아세트 아미노펜 해열 감기에인한 통증에 효과가있습니다")
+        send_text = "펜잘 중복이 있습니다 확인해주세요 성분:아세트 아미노펜 해열 감기에인한 통증에 효과가있습니다"
+
     else:
         print("문제가없습니다 복약하시면됩니다")
+        send_text="문제가없습니다 복약하시면됩니다"
+
 
     # 'q' 키를 누르면 루프 종료
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(100) & 0xFF == ord('q'):
         break
 
 # 웹캠 해제 및 창 닫기
