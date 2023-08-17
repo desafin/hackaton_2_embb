@@ -33,6 +33,8 @@ def generate_frames():
         frame = buffer.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        #과부하시 딜레이넣을것
+        #time.sleep(1)
 
 
 
@@ -62,7 +64,8 @@ def events():
 
 
 def start_stream():
-    app.run(debug=False)
+    app.run(host='10.10.14.11', port=8000, debug=False)
+
 
 server_thread = threading.Thread(target=start_stream)
 
