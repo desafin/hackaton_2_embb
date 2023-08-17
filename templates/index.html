@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f2e6f7; /* 연한 보라색 배경 */
+            background-color: #f2e6f7;
             margin: 0;
             padding: 0;
             display: flex;
@@ -20,21 +20,29 @@
 
         h1 {
             margin-top: 20px;
-            font-size: 28px;
-            color: #6c63ff; /* 연한 파란색 헤더 */
+            font-size: 32px;
+            color: #6c63ff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            font-size: 20px;
+            color: #6c63ff;
         }
 
         img {
             max-width: 100%;
             height: auto;
-            border-radius: 8px; /* 이미지에 둥근 테두리 추가 */
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+            border-radius: 12px;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
         }
 
         #textElement {
-            font-size: 20px;
-            color: #9c8cbb; /* 연한 보라색 텍스트 */
+            font-size: 24px;
+            color: #9c8cbb;
             margin-top: 20px;
+            text-align: center;
         }
     </style>
 
@@ -47,24 +55,35 @@
 
             // HTML 요소에 텍스트 업데이트
             const textElement = document.getElementById('textElement');
-            textElement.textContent = textData;
+            textElement.innerHTML = textData;
         });
 
         // SSE 연결 에러 처리
         eventSource.onerror = (event) => {
             console.error('SSE Error:', event);
         };
+
+        // 현재 시간 업데이트 함수
+        function updateCurrentTime() {
+            const currentTimeElement = document.getElementById('currentTime');
+            const now = new Date();
+            currentTimeElement.textContent = '현재 시간: ' + now.toLocaleTimeString();
+        }
+
+        // 페이지 로드 시 초기화
+        window.onload = () => {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+        };
     </script>
 
 </head>
 <body>
     <h1>필잇 시연영상</h1>
+    <p id="currentTime"></p>
+    <p>설정 시간: 오전 8:00:00</p>
     <img src="{{ url_for('video_feed') }}" alt="Video Stream">
     <h1>분석결과</h1>
-
-    <!-- 텍스트를 표시할 요소 -->
     <p id="textElement"></p>
-
-
 </body>
 </html>

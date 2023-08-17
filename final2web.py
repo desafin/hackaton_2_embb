@@ -64,7 +64,7 @@ def events():
 
 
 def start_stream():
-    app.run(host='10.10.14.11', port=8000, debug=False)
+    app.run(host='0.0.0.0', port=8000, debug=False)
 
 
 server_thread = threading.Thread(target=start_stream)
